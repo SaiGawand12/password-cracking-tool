@@ -34,7 +34,7 @@ A dictionary-based password cracking tool written in Python.
 
 Website will run on http://127.0.0.1:5000
 
-![Output]("templates/Screenshot 2024-11-23 133758.png")
+![Output]("[templates/Screenshot 2024-11-23 133758.png](https://github.com/SaiGawand12/password-cracking-tool/blob/main/templates/Screenshot%202024-11-23%20133758.png)")
 
 ### Important Notes
 
