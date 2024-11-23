@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Cracking Tool</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        /* Basic Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f7f9fc;
+            color: #333;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            color: #4CAF50;
+            margin-bottom: 20px;
+        }
+
+        .form-container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .form-container label {
+            font-size: 1.1em;
+            margin-bottom: 10px;
+            display: block;
+            color: #555;
+        }
+
+        .form-container input, .form-container select {
+            width: 100%;
+            padding: 10px;
+            font-size: 1em;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-container input:focus, .form-container select:focus {
+            border-color: #4CAF50;
+            outline: none;
+        }
+
+        .form-container button {
+            background-color: #4CAF50;
+            color: white;
+            font-size: 1.2em;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s ease;
+        }
+
+        .form-container button:hover {
+            background-color: #45a049;
+        }
+
+        .result {
+            text-align: center;
+            font-size: 1.2em;
+            margin-top: 20px;
+            color: #333;
+        }
+
+        .error {
+            color: red;
+        }
+
+        .success {
+            color: green;
+        }
+
+        /* Loading Spinner */
+        .loading {
+            text-align: center;
+            font-size: 1.5em;
+            color: #4CAF50;
+            margin-top: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4CAF50;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 2s linear infinite;
+            margin-top: 10px;
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Password Cracking Tool</h1>
+
+    <div class="form-container">
+        <form id="crackForm">
+            <label for="password_length">Password Length (1-20):</label>
+            <input type="number" id="password_length" name="password_length" min="1" max="20" value="4" required>
+
+            <label for="charset">Character Set:</label>
+            <select id="charset" name="charset" required>
+                <option value="{{ string.ascii_lowercase }}">Lowercase (a-z)</option>
+                <option value="{{ string.ascii_uppercase }}">Uppercase (A-Z)</option>
+                <option value="{{ string.digits }}">Digits (0-9)</option>
+                <option value="{{ string.ascii_lowercase + string.digits }}">Lowercase + Digits</option>
+                <option value="{{ string.ascii_lowercase + string.ascii_uppercase }}">Lowercase + Uppercase</option>
+                <option value="{{ string.ascii_lowercase + string.ascii_uppercase + string.digits }}">Lowercase + Uppercase + Digits</option>
+                <option value="{{ string.ascii_lowercase + string.ascii_uppercase + string.digits + string.punctuation }}">Full Set (Lowercase, Uppercase, Digits, Symbols)</option>
+            </select>
+
+            <button type="submit">Start Cracking</button>
+        </form>
+    </div>
+
+    <div id="result" class="result"></div>
+
+    <!-- Loading Spinner -->
+    <div id="loading" class="loading" style="display: none;">
+        Cracking password, please wait...
+        <div class="spinner"></div>
+    </div>
+
+    <script>
+        // Show loading spinner when the form is submitted
+        document.getElementById('crackForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            // Show the loading spinner
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('result').style.display = 'none';  // Hide result during cracking
+
+            const passwordLength = document.getElementById('password_length').value;
+            const charset = document.getElementById('charset').value;
+
+            const formData = new FormData();
+            formData.append('password_length', passwordLength);
+            formData.append('charset', charset);
+
+            fetch('/crack_password', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                const resultDiv = document.getElementById('result');
+                // Hide the loading spinner
+                document.getElementById('loading').style.display = 'none';
+                resultDiv.style.display = 'block';  // Show the result div
+
+                if (data.status === 'success') {
+                    resultDiv.innerHTML = `<p class="success">Password found: <strong>${data.password}</strong> in ${data.attempts} attempts.</p>`;
+                } else {
+                    resultDiv.innerHTML = `<p class="error">Error: ${data.message}</p>`;
+                }
+            })
+            .catch(error => {
+                // Hide the loading spinner if there was an error
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('result').innerHTML = `<p class="error">An error occurred. Please try again.</p>`;
+            });
+        });
+    </script>
+
+</body>
+</html>
